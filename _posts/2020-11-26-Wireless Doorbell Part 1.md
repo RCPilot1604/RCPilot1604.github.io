@@ -43,19 +43,18 @@ I wrote some sketches in Arduino IDE for the WeMosD1 mini (after installing the 
 
 **Schematic for the actuator:**
 {:refdef: style="text-align: center;"}
-![Test Picture 1](/images/WiFi Doorbell/Setup for Doorbell Actuator.png)
+![Schematic for the actuator](/images/WiFi Doorbell/Actuator.png)
 {: refdef}
 **Sketch for the actuator:**
 {% highlight C++ %}
-int x = 1;
-Serial.println(x);
+Coming soon
 {% endhighlight %}
 For the actuator, the integration is rather simple. The basic flow goes like this:
 1. Receive data from *BLYNK_WRITE()* and if it is 1 (high), toggle the state of the doorbell to high
 
 **Schematic for the Switch**
 {:refdef: style="text-align: center;"}
-![Test Picture 1](/images/WiFi Doorbell/Setup for Doorbell Switch.png)
+![Schematic for the Switch](/images/WiFi Doorbell/Switch.png)
 {: refdef}
 
 **Sketch for the Switch:**
