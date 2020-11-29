@@ -43,7 +43,7 @@ I wrote some sketches in Arduino IDE for the WeMosD1 mini (after installing the 
 
 **Schematic for the actuator:**
 {:refdef: style="text-align: center;"}
-![Schematic for the actuator](/images/WiFi Doorbell/Actuator.png)
+![Schematic for the actuator](/images/WiFi Doorbell/Actuator.jpg)
 {: refdef}
 **Sketch for the actuator:**
 {% highlight C++ %}
@@ -54,7 +54,7 @@ For the actuator, the integration is rather simple. The basic flow goes like thi
 
 **Schematic for the Switch**
 {:refdef: style="text-align: center;"}
-![Schematic for the Switch](/images/WiFi Doorbell/Switch.png)
+![Schematic for the Switch](/images/WiFi Doorbell/Switch.jpg)
 {: refdef}
 
 **Sketch for the Switch:**
