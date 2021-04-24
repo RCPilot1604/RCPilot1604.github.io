@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Wireless Doorbell with Blynk
+comments: True
 ---
 
 **Over-Engineered Doorbell in all its Glory:**
