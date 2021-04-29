@@ -3,4 +3,4 @@ description: A blog for my projects!
 show_downloads: true
 google_analytics:
 theme: jekyll-theme-architect
-baseurl: /website
+baseurl: /
