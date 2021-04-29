@@ -29,6 +29,8 @@ Since the voltage across V_Sense and GND is always at 0.8V (measured wrt GND), a
 
 $$\ V_Sense = V_Out * \frac{R_4}{R_3+R_4}$$
 
+However, by adding a resistor $$\R_5$$ and applying a voltage at V_Sense, V_out can now be controlled by varying the voltage through a micro-controller analog pin. Given the 
+
 After sorting out the voltage regulation bit, it was then time to sort out the _voltage and current sensing_ part of this project (after all, we have to know what the value of the voltage and current of our panels and battery is to make any attempt at being a charge controller)! To that end, I turned to a specialized IC - the INA219 which is an variable-precision power monitoring IC that is capable of measuring both voltage and current through a shunt resistor. Using an appropriate value of shunt resistor, I was thus able to obtain values for both current and voltage in the desired range. 
 
 <!-- More math goes here lmao -->
