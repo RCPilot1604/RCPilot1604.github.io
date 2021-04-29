@@ -20,24 +20,25 @@ The initial phase saw me doing extensive research on how to control the charging
 The new problem was that now I needed some way to control the Converter. As an amateur I spent some time studying the topology of the board and learnt that the potentiometer that controlled the voltage was such that the wiper was connected to a voltage sense pin which would by working of "some op amps" in the circuit, always maintain a voltage of 0.8V between itself and ground (as per the circuit diagram below). 
 
 {:refdef: style="text-align: center;"}
-![Circuit Diagram 1](/images/MPPT Solar CC/Circuit Diagram 1.jpg)
+![Circuit Diagram 1]({{site.baseurl}}/images/MPPT Solar CC/Circuit Diagram 1.jpg)
 {: refdef}
 
 Thus, we can derive a mathematical equation that would give us the output voltage based on the input voltage. 
 
 Since the voltage across V_Sense and GND is always at 0.8V (measured wrt GND), asuuming that there is no input from a microcontroller, the voltage across the output (V_Out) and V_Sense cacn be modelled using the voltage divider equation: 
 
-$$\ V_(Sense) = V_(Out) * \frac{R_4}{R_3+R_4} $$
+$$\ V_{Sense} = V_{Out} * \frac{R_4}{R_3+R_4} $$
 
 Rearranging yields
 
-$$V_(Out) = V_(Sense) * \frac{R_3 + R_4}{R_4} $$
 
 However, by adding a resistor $$\ R_5 $$ and applying a voltage at V_Sense, V_out can now be controlled by varying the voltage through a micro-controller analog pin. Given new setup is represented by the circuit diagram below: 
 
 {:refdef: style="text-align: center;"}
-![Circuit Diagram 1](/images/MPPT Solar CC/Circuit Diagram PNG 1.png)
+![Circuit Diagram 1]({{site.baseurl}}/images/MPPT Solar CC/Circuit Diagram 2.jpg)
 {: refdef}
+
+Since the   
 
 After sorting out the voltage regulation bit, it was then time to sort out the _voltage and current sensing_ part of this project (after all, we have to know what the value of the voltage and current of our panels and battery is to make any attempt at being a charge controller)! To that end, I turned to a specialized IC - the INA219 which is an variable-precision power monitoring IC that is capable of measuring both voltage and current through a shunt resistor. Using an appropriate value of shunt resistor, I was thus able to obtain values for both current and voltage in the desired range. 
 
