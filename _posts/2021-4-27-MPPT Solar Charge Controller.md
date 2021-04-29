@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Wireless Doorbell with Blynk
+title: MPPT Solar Charge Controller
 comments: True
 ---
 
@@ -12,15 +12,22 @@ comments: True
 
 The idea for an MPPT solar change controller (MPPT Solar CC) first came about as when I was building my Hydroponic system. Given that I wanted to power at least the lights from solar energy, I began doing some research on solar arrays and how best to set up my system. This was where I chanced upon the idea of MPPT and how it could save up to 30% more power from my solar panels, something very desirable since I only had so much space and thus a very limited number (1) of solar panels at my disposal. 
 
-<!-- <insert image of solar panel -->
+<!-- <insert image of solar panel> -->
 
 I initially found a variety of solar charge controllers available on the market, however unfortunately they were either fake MPPT or pretty expensive (I narrowed down on the EPever Tracer modules and they start at SGD$60 for 10A). Given this, as well as the hope that I could make the CC "smart" through integration with WiFi logging (which would fit into the whole smart home initiative I had), I decided to try my hand at making a MPPT charge controller from arduino components. 
 
-The initial phase saw me doing extensive research on how to control the charging circuit of the solar charge controller. I vaguely knew that it would be along the lines of a DC-DC switch mode power supply (SMPS) but due to a general lack of knowledge in this aspect, initial trials to design my own SMPS from scratch (ie to size all the components and build the circuit wasn't very successful... [As in it _worked_ but it wasn't consistent and reliable]). Hence to save me some time before I actually got down to study SMPS, I decided to integrate an existing SMPS circuit into my design, saving me time in ironing out the switching aspect. I settled on the LTC3750 Synchronous Buck Boost converter due to it's decent efficiency and also very decent price point (SGD$15 per piece). 
+The initial phase saw me doing extensive research on how to control the charging circuit of the solar charge controller. I vaguely knew that it would be along the lines of a DC-DC switch mode power supply (SMPS) but due to a general lack of knowledge in this aspect, initial trials to design my own SMPS from scratch (ie to size all the components and build the circuit wasn't very successful... [As in it _worked_ but it wasn't consistent and reliable]). Hence to save me some time before I actually got down to study SMPS, I decided to integrate an existing SMPS circuit into my design, saving me time in ironing out the switching aspect. I set  
+The new problem was that now I needed some way to control the Converter. As an amateur I spent some time studying the topology of the board and learnt that the potentiometer that controlled the voltage was such that the wiper was connected to a voltage sense pin which would by working of "some op amps" in the circuit, always maintain a voltage of 0.8V between itself and ground (as per the circuit diagram below). 
 
-The new problem was that now I needed some way to control the Converter. As an amateur I spent some time studying the topology of the board and learnt that the potentiometer that controlled the voltage was such that the wiper was connected to a voltage sense pin which would by working of "some op amps" in the circuit, always maintain a voltage of 0.8V between itself and ground (as per the circuit diagram below). Thus, we can derive a mathematical equation that would give us the output voltage based on the input voltage:
+{:refdef: style="text-align: center;"}
+![Circuit Diagram 1](/images/MPPT Solar CC/Circuit Diagram.jpg)
+{: refdef}
 
-<!-- Mathy stuff goes here lmao -->
+Thus, we can derive a mathematical equation that would give us the output voltage based on the input voltage. 
+
+Since the voltage across V_Sense and GND is always at 0.8V (measured wrt GND), asuuming that there is no input from a microcontroller, the voltage across the output (V_Out) and V_Sense cacn be modelled using the voltage divider equation: 
+
+$$\ V_Sense = V_Out * \frac{R_4}{R_3+R_4}$$
 
 After sorting out the voltage regulation bit, it was then time to sort out the _voltage and current sensing_ part of this project (after all, we have to know what the value of the voltage and current of our panels and battery is to make any attempt at being a charge controller)! To that end, I turned to a specialized IC - the INA219 which is an variable-precision power monitoring IC that is capable of measuring both voltage and current through a shunt resistor. Using an appropriate value of shunt resistor, I was thus able to obtain values for both current and voltage in the desired range. 
 
