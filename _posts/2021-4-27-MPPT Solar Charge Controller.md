@@ -68,9 +68,16 @@ $$\ V_{Out} = 0.8V + (\frac{0.8 V}{R_2} - \frac{V_{Sense} - 0.8}{R_3}) * R_1 $$
 
 Thus, we derive the following mathematical relationship between the output voltage, $$\ V_{Sense} $$ and $$\ R_3, R_4  and  R_5 $$
 
+The main article from which these relationships are derived from can be found [here](https://electronics.stackexchange.com/questions/167075/how-to-control-a-buck-boost-converter-circuit-from-a-microcontroller).
 After sorting out the voltage regulation bit, it was then time to sort out the _voltage and current sensing_ part of this project (after all, we have to know what the value of the voltage and current of our panels and battery is to make any attempt at being a charge controller)! To that end, I turned to a specialized IC - the INA219 which is an variable-precision power monitoring IC that is capable of measuring both voltage and current through a shunt resistor. Using an appropriate value of shunt resistor, I was thus able to obtain values for both current and voltage in the desired range. 
 
-<!-- More math goes here lmao -->
+From the [Adafruit Product Page](https://www.adafruit.com/product/904),the maximum voltage across the voltage sense bus was +26V, more than enough for our application of measuring *up to 18V (solar panel OC Voltage)*. The current measurement threshold was calculated from the maximum differene in voltage between the input sense pins for the shunt resistor which is $$\ \pm 320 mV $$. Thus, given a resistor of $$\ 0.1 \Omega $$, the maximum current through the shunt was calculated according to Ohm's Law:
+
+$$\ I_{max} = frac{\pm 320 \times 10^{-3}}{0.1 \Omega}
+
+Which yields 3.20 V. 
+
+In order to increase the current measurable through the sensor, the shunt resistance value had to be increased as per the above equation. Thus, the maximum current measurable was increaed tenfold by selecting a 10 times smaller resistor ($$\ 0.01 \Omega $$) which allowed for current measurement up to $$\ \pm 32A $$ (way above our requirements). However, a noteworthy tradeoff was the decreased resolution of the current reading (which also increased tenfold to $$\ \pm 8mA $$). However, given the nature of the currents being measured, this decrease in resolution was not a concern. 
 
 After all the dust had settled with the core components of the controller, it was now time to focus my attention to the reason why I even bothered doing this in the first place - WiFi logging and remote monitoring of the charge controller! To serve this role, I chose to use an ESP32 board solely due to the fact that I had experience in working with this low-cost module and it was also readily available as a WiFi option at the time of writing. To save space on my already densely populated board and also because I was already using a dedicated microcontroller to handle the heavylifting of the calculations, I configured the ESP32 as a mere serial slave that would simply communicate with the microcontroller via AT commands, something which necessitated the use of either a software serial or a dedicated hardware serial port. This was hence a very large consideration that led me to choose the ATMEGA2560 as the microcontroller of choice. 
 
