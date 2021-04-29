@@ -40,7 +40,7 @@ However, by adding a resistor $$\ R_3 $$ and applying a voltage at V_Sense, V_ou
 {: refdef}
 
 By considering current flowing through resistors, we obtain the following expression for current through $$\ R_3 $$:
-_
+
 $$\ I_{R_3} = \frac{V_{Sense} - 0.8}{R_3} $$
 
 *We assume that positive current represents current flowing from $$\ V_sense $$ into $$\ R_3 $$*
@@ -66,14 +66,18 @@ $$\ V_{Out} = 0.8V + (I_{R_2} - I_{R_3}) * R_1 $$
 
 $$\ V_{Out} = 0.8V + (\frac{0.8 V}{R_2} - \frac{V_{Sense} - 0.8}{R_3}) * R_1 $$
 
-Thus, we derive the following mathematical relationship between the output voltage, $$\ V_{Sense} $$ and $$\ R_3, R_4  and  R_5 $$
+Thus, we derive the following mathematical relationship between the output voltage, $$\ V_{Sense} $$ and $$\ R_3, R_4 $$ and  $$\ R_5 $$.
+To solve for the values of each resistor, I used [Desmos]()
 
 The main article from which these relationships are derived from can be found [here](https://electronics.stackexchange.com/questions/167075/how-to-control-a-buck-boost-converter-circuit-from-a-microcontroller).
+
+The input voltage for controlling the voltage was supplied by means of a [MCP4725 Digital Analog Converter](https://www.microchip.com/wwwproducts/en/MCP4725) (or DAC) as I the ATMEGA2560 (as with most Arduino boards) does not have a Digital Analog Converter.
+
 After sorting out the voltage regulation bit, it was then time to sort out the _voltage and current sensing_ part of this project (after all, we have to know what the value of the voltage and current of our panels and battery is to make any attempt at being a charge controller)! To that end, I turned to a specialized IC - the INA219 which is an variable-precision power monitoring IC that is capable of measuring both voltage and current through a shunt resistor. Using an appropriate value of shunt resistor, I was thus able to obtain values for both current and voltage in the desired range. 
 
 From the [Adafruit Product Page](https://www.adafruit.com/product/904),the maximum voltage across the voltage sense bus was +26V, more than enough for our application of measuring *up to 18V (solar panel OC Voltage)*. The current measurement threshold was calculated from the maximum differene in voltage between the input sense pins for the shunt resistor which is $$\ \pm 320 mV $$. Thus, given a resistor of $$\ 0.1 \Omega $$, the maximum current through the shunt was calculated according to Ohm's Law:
 
-$$\ I_{max} = frac{\pm 320 \times 10^{-3}}{0.1 \Omega}
+$$\ I_{max} = frac{\pm 320 \times 10^{-3}}{0.1 \Omega} $$
 
 Which yields 3.20 V. 
 
@@ -81,7 +85,7 @@ In order to increase the current measurable through the sensor, the shunt resist
 
 After all the dust had settled with the core components of the controller, it was now time to focus my attention to the reason why I even bothered doing this in the first place - WiFi logging and remote monitoring of the charge controller! To serve this role, I chose to use an ESP32 board solely due to the fact that I had experience in working with this low-cost module and it was also readily available as a WiFi option at the time of writing. To save space on my already densely populated board and also because I was already using a dedicated microcontroller to handle the heavylifting of the calculations, I configured the ESP32 as a mere serial slave that would simply communicate with the microcontroller via AT commands, something which necessitated the use of either a software serial or a dedicated hardware serial port. This was hence a very large consideration that led me to choose the ATMEGA2560 as the microcontroller of choice. 
 
-Now that most of the key components were settled, it was time to start prototyping. As always, I started prototyping on breadboard before moving on to manufacturing a PCB (speaking of which it was an exhilirating experience for me as it was my first time ordering a PCB from a fab house)! I initially encountered every single problem you could think of - from poor breadboard connections (most annoying) to general issues with the libraries and code (there exist so many INA219 libraries and I'll provide the code for those which worked). The most annoying of all issues however, was that the voltage regulation would sometimes yield inconsistent results **and** wildly inaccurate results. The final value of the resistor R_x which worked for me differed from the theoratical value (R_y) by so large an amount that it was almost as if the theory did not exist (oops).
+Now that most of the key components were settled, it was time to start prototyping. As always, I started prototyping on breadboard before moving on to manufacturing a PCB (speaking of which it was an exhilirating experience for me as it was my first time ordering a PCB from a fab house)! I initially encountered every single problem you could think of - from poor breadboard connections (most annoying) to general issues with the libraries and code (there exist so many INA219 libraries and I'll provide the code for those which worked). The most annoying of all issues however, was that the voltage regulation would sometimes yield inconsistent results **and** wildly inaccurate results. The final value of the resistor $$\  R_3 $$ which worked for me differed from the theoratical value by so large an amount that it was almost as if the theory did not exist (oops).
 
 After the key components showed _some semblance of working_, I proceeded to add on the bells and whistles, namely auxillary features such as SD card logging, a Graphical User Interface (GUI) complete with a rotary encoder. The final product also includes LED display lights to quickly convey critical information such as presence of SD card / undervoltage etc. 
 
