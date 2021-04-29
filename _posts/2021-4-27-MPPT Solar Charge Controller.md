@@ -31,6 +31,7 @@ $$\ V_{Sense} = V_{Out} * \frac{R_4}{R_3+R_4} $$
 
 Rearranging yields
 
+$$V_(Out) = V_{Sense} * \frac{R_3 + R_4}{R_4} $$
 
 However, by adding a resistor $$\ R_5 $$ and applying a voltage at V_Sense, V_out can now be controlled by varying the voltage through a micro-controller analog pin. Given new setup is represented by the circuit diagram below: 
 
