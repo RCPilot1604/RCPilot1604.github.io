@@ -27,39 +27,46 @@ Thus, we can derive a mathematical equation that would give us the output voltag
 
 Since the voltage across V_Sense and GND is always at 0.8V (measured wrt GND), asuuming that there is no input from a microcontroller, the voltage across the output (V_Out) and V_Sense cacn be modelled using the voltage divider equation: 
 
-$$\ V_{Sense} = V_{Out} * \frac{R_4}{R_3+R_4} $$
+$$\ V_{Sense} = V_{Out} * \frac{R_2}{R_1+R_2} $$
 
 Rearranging yields:
 
-$$V_{Out} = V_{Sense} * \frac{R_3 + R_4}{R_4} $$
+$$V_{Out} = V_{Sense} * \frac{R_1 + R_2}{R_2} $$
 
-However, by adding a resistor $$\ R_5 $$ and applying a voltage at V_Sense, V_out can now be controlled by varying the voltage through a micro-controller analog pin. Given new setup is represented by the circuit diagram below: 
+However, by adding a resistor $$\ R_3 $$ and applying a voltage at V_Sense, V_out can now be controlled by varying the voltage through a micro-controller analog pin. Given new setup is represented by the circuit diagram below: 
 
 {:refdef: style="text-align: center;"}
 ![Circuit Diagram 1]({{site.baseurl}}/images/MPPT Solar CC/Circuit Diagram 2.JPG)
 {: refdef}
 
-By considering current flowing through resistors, we obtain the following expression for current through $$\ R_5 $$:
+By considering current flowing through resistors, we obtain the following expression for current through $$\ R_3 $$:
 _
-$$\ I_{R5} = \frac{V_{Sense} - 0.8}{R_5} $$
-*We assume that positive current represents current flowing from $$\ V_sense $$ into $$\ R_5 $$*
+$$\ I_{R_3} = \frac{V_{Sense} - 0.8}{R_3} $$
 
-Current through $$\ R_4 $$ is given to be:
+*We assume that positive current represents current flowing from $$\ V_sense $$ into $$\ R_3 $$*
 
-$$\ I_{R4} = \frac{0.8 V}{R_4} $$
+Current through $$\ R_2 $$ is given to be:
+
+$$\ I_{R_2} = \frac{0.8 V}{R_2} $$ 
+
+*This is because we know that the voltage across  $$\ R_2 $$ is always 0.8V*
 
 Thus by Kirchoff's First Law:
 
-$$\ I_{R_3} = I_{R4} + I_{R5} $$
+$$\ I_{R_2} = I_{R_1} + I_{R_3} $$
+
+$$\ I_{R_1} = I_{R_2} - I_{R_3} $$
 
 Thus given that
-$$\ V_{R3} = I_{R3} * R_3 $$
+$$\ V_{R_1} = I_{R_1} * R_1 $$
 
-$$\ V_{Out} = 0.8V + I_{R3} * R_3 $$
-$$\ V_{Out} = 0.8V + (I_{R4} + I_{R5}) * R_3 $$
-$$\ V_{Out} = 0.8V + (\frac{0.8 V}{R_4} +\frac{V_{Sense} - 0.8}{R_5}) * R_3 $$
+$$\ V_{Out} = 0.8V + I_{R_1} * R_1 $$
 
-Thus, we derive the following mathematical relationship between the output voltage, $$\ V_{Sense} $$ and $$\ R_3, R_4 and R_5 $$
+$$\ V_{Out} = 0.8V + (I_{R_2} - I_{R_3}) * R_1 $$
+
+$$\ V_{Out} = 0.8V + (\frac{0.8 V}{R_2} - \frac{V_{Sense} - 0.8}{R_3}) * R_1 $$
+
+Thus, we derive the following mathematical relationship between the output voltage, $$\ V_{Sense} $$ and $$\ R_3, R_4  and  R_5 $$
 
 After sorting out the voltage regulation bit, it was then time to sort out the _voltage and current sensing_ part of this project (after all, we have to know what the value of the voltage and current of our panels and battery is to make any attempt at being a charge controller)! To that end, I turned to a specialized IC - the INA219 which is an variable-precision power monitoring IC that is capable of measuring both voltage and current through a shunt resistor. Using an appropriate value of shunt resistor, I was thus able to obtain values for both current and voltage in the desired range. 
 
