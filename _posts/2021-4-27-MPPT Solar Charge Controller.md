@@ -14,7 +14,14 @@ The idea for an MPPT solar change controller (MPPT Solar CC) first came about as
 
 I initially found a variety of solar charge controllers available on the market, however unfortunately they were either fake MPPT or pretty expensive (I narrowed down on the EPever Tracer modules and they start at SGD$60 for 10A). Given this, as well as the hope that I could make the CC "smart" through integration with WiFi logging (which would fit into the whole smart home initiative I had), I decided to try my hand at making a MPPT charge controller from arduino components. 
 
-The initial phase saw me doing extensive research on how to control the charging circuit of the solar charge controller. I vaguely knew that it would be along the lines of a DC-DC switch mode power supply (SMPS) but due to a general lack of knowledge in this aspect, initial trials to design my own SMPS from scratch (ie to size all the components and build the circuit wasn't very successful... [As in it _worked_ but it wasn't consistent and reliable]). Hence to save me some time before I actually got down to study SMPS, I decided to integrate an existing SMPS circuit into my design, saving me time in ironing out the switching aspect. I set  
+The initial phase saw me doing extensive research on how to control the charging circuit of the solar charge controller. I vaguely knew that it would be along the lines of a DC-DC switch mode power supply (SMPS) but due to a general lack of knowledge in this aspect, initial trials to design my own SMPS from scratch (ie to size all the components and build the circuit wasn't very successful... [As in it _worked_ but it wasn't consistent and reliable]). Hence to save me some time before I actually got down to study SMPS, I decided to integrate an existing SMPS circuit into my design, saving me time in ironing out the switching aspect. I set about looking for a relatively low-cost, arduino controllable SMPS unit, and soon stumbled across the LTC3780 Synchronous Buck Boost Converter sold under the designation of [WD2002SJ](https://raw.githubusercontent.com/Marzogh/Benchtop-Powersupply/master/Datasheets/WD2002SJ%20-%20LTC3780%20buck%20boost%20converter.pdf) from online Chinese suppliers like Aliexpress or Banggood. This board has the following specs: 
+- Input Voltage Range: 5V - 32V
+- Output Voltage Range: 1V to *Input voltage + 5 to 6V* 
+- Output Current: 10A **max**, 7A **sustained**
+- Output Power: 80W **sustained**, 100W **peak** (I am sure the spec sheet has a typo in it)
+
+These specifications were retrieved from the aboved datasheet.
+
 The new problem was that now I needed some way to control the Converter. As an amateur I spent some time studying the topology of the board and learnt that the potentiometer that controlled the voltage was such that the wiper was connected to a voltage sense pin which would by working of "some op amps" in the circuit, always maintain a voltage of 0.8V between itself and ground (as per the circuit diagram below). 
 
 {:refdef: style="text-align: center;"}
