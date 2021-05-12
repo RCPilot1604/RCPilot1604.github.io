@@ -1,0 +1,246 @@
+I"�i<p><strong>Over-Engineered Doorbell in all its Glory:</strong></p>
+<p style="text-align: center;"><img src="/images/WiFi Doorbell/Doorbell 1.jpg" alt="Test Picture 1" /></p>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/KrsBTRd1y2Q" frameborder="0" allowfullscreen="" style="text-align: center;"></iframe>
+
+<p>Recently I have been working on implementing an over-engineered doorbell for the purposes of</p>
+<ul>
+  <li>Allowing for <em>muting</em> of the doorbell via app</li>
+  <li>Allowing for <em>push notification</em> to my phone when someone rings the doorbell (just in case I am not able to hear it)</li>
+  <li>Most importantly, allowing me to trigger the doorbell <strong>remotely</strong> via my app when I am outside</li>
+</ul>
+
+<p>But before everything else, a bit of context: 
+My current doorbell is a rather old design that actually uses a <em>mechanical</em> switch to manually open and close a circuit to a solenoid. This meant that there was a wire running from inside the house to the outside switch box where the doorbell switch was located. 
+This was really what spurred me to convert my doorbell to <em>wireless</em> as repurposing this wire (which was literally a standard multi-core copper wire) to transmit power rather than signal was something which would allow me to power the WiFi chip directly via the <em>mains</em> instead of having to deal with batteries (something I try to avoid as much as possible especially when we are dealing with WiFi).
+But before everything else, a bit of context: My current doorbell is a rather old design that actually uses a mechanical switch to manually open and close a circuit to a solenoid. This meant that there was a wire running from inside the house to the outside switch box where the doorbell switch was located. This was really what spurred me to convert my doorbell to wireless as repurposing this wire (which was literally a standard multi-core copper wire) to transmit power rather than signal was something which would allow me to power the WiFi chip directly via the mains instead of having to deal with batteries (something I try to avoid as much as possible especially when we are dealing with WiFi).
+<!-- image of wires !-->
+As such, the first step I took was to route a connection from a mains socket to the current doorbell after which I connect the mains wiring to the doorbell wire, bringing it live.</p>
+
+<p>Subsequently, I added a Switch Mode Power Supply unit to the live wire at both the doorbell end and at the doorbell switch end to convet the mains voltage to 5V DC voltage that my development board (WeMos D1) could use. For the doorbell, I had to use a power supply with a larger amp rating. More on that later.
+Now I had to figure out how the doorbell actually worked (and consequently whether I was able to use the 5V DC supply to power the doorbell). It turns out the doorbell’s operating mechanism was rather simple.
+<!-- Video on initial doorbell setup -->
+The doorbell was initially powered via 4 C Size batteries, bringing the total voltage to 4 * 1.5V = 6V. At it’s core of the setup was a solenoid which was connected to two terminals (1 and 2). 
+The other two terminals were connected to the terminals of the battery. 
+When the switch was pressed, the circuit was closed and the solenoid was energized via the batteries, causing it to exert a force on the two chimes, creating the tone.
+As such, it was quite clear that I would need emulate the physical switch (most likely with an electronic switch), ie a MOSFET or a BJT. Eventually I chose to go with a MOSFET as it could switch high currents with ease with a minimum On current (as compared to BJTs). 
+This was also the reason why I chose a beefier SMPS power supply as from the lab bench PSU the current drawn was about 0.8A. With that, I set about designing the circuit in AutoDesk EAGLE (just for reference) because the project was too small for a PCB to be manufactured. I mainly stick to low cost perf board for such one time use applications.</p>
+
+<p>Lastly, the board I will be using will be the WeMos D1 Mini which is a cheap and neat breakout board that is based of the low-cost ESP8266 WiFi chip. Such a board is rather common and inexpensive, however it lacks certain key features such as multiple Analog I/O (it only has 1 A0 pin at 3.3V) and the entire setup is also a 3.3V logic level board (which makes interfacing a bit more challenging especially for digital sensors [since often 5V logic level boards can interpret 3.3V but not vice versa as 5V will destroy a 3.3V board])
+<!-- picture of WeMos D1 Mini-->
+For the software I will be making use extensively of Blynk as it is open source and free (for the most part until you run out of energy). 
+The overall schematics are as follows:
+<!-- Simple diagram of switch and doorbell. -->
+I wrote some sketches in Arduino IDE for the WeMosD1 mini (after installing the required boards under board manager and the Blynk Library in the Libary Manager).</p>
+
+<p><strong>Schematic for the actuator:</strong></p>
+<p style="text-align: center;"><img src="/images/WiFi Doorbell/Actuator.jpg" alt="Schematic for the actuator" /></p>
+<p><strong>Sketch for the actuator:</strong></p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="n">Coming</span> <span class="n">soon</span></code></pre></figure>
+
+<p>For the actuator, the integration is rather simple. The basic flow goes like this:</p>
+<ol>
+  <li>Receive data from <em>BLYNK_WRITE()</em> and if it is 1 (high), toggle the state of the doorbell to high</li>
+</ol>
+
+<p><strong>Schematic for the Switch</strong></p>
+<p style="text-align: center;"><img src="/images/WiFi Doorbell/Switch.jpg" alt="Schematic for the Switch" /></p>
+
+<p><strong>Sketch for the Switch:</strong></p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="cp">#include &lt;ESP8266WiFi.h&gt;
+#include &lt;ESP8266mDNS.h&gt;
+#include &lt;WiFiUdp.h&gt;
+#include &lt;ArduinoOTA.h&gt;
+#include &lt;ESP8266WebServer.h&gt;
+</span>
+<span class="n">ESP8266WebServer</span> <span class="n">server</span><span class="p">;</span>
+
+<span class="cp">#include &lt;BlynkSimpleEsp8266.h&gt;
+</span><span class="kt">char</span> <span class="n">auth</span><span class="p">[]</span> <span class="o">=</span> <span class="s">"My Blynk Auth Code"</span><span class="p">;</span>
+
+<span class="cp">#ifndef STASSID
+#define STASSID "My Wifi SSID"
+#define STAPSK "My Wifi Password"
+#define DEBUG_ESP_OTA true
+#endif
+</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ssid</span> <span class="o">=</span> <span class="n">STASSID</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">password</span> <span class="o">=</span> <span class="n">STAPSK</span><span class="p">;</span>
+
+<span class="n">WidgetBridge</span> <span class="nf">bridge1</span><span class="p">(</span><span class="n">V1</span><span class="p">);</span>
+<span class="n">BlynkTimer</span> <span class="n">timer</span><span class="p">;</span>
+
+<span class="n">boolean</span> <span class="n">ota_flag</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="n">buttonPin</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">debounceDelay</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>
+<span class="n">boolean</span> <span class="n">initialState</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">finalState</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">buttonState</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">virtualState</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">virtualLastState</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">mute</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<span class="kt">uint16_t</span> <span class="n">time_elapsed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="kt">uint16_t</span> <span class="n">debounceTimer</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="n">BLYNK_CONNECTED</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">bridge1</span><span class="p">.</span><span class="n">setAuthToken</span><span class="p">(</span><span class="s">"My other Auth Code"</span><span class="p">);</span> <span class="c1">// Place the AuthToken of the second hardware here</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">yourSetup</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">Blynk</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="n">ssid</span><span class="p">,</span> <span class="n">password</span><span class="p">);</span>
+  <span class="n">pinMode</span><span class="p">(</span><span class="n">buttonPin</span><span class="p">,</span> <span class="n">INPUT_PULLUP</span><span class="p">);</span>
+  <span class="c1">//timer.setInterval(500L, printStatus);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="mi">115200</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Booting"</span><span class="p">);</span>
+  <span class="n">WiFi</span><span class="p">.</span><span class="n">mode</span><span class="p">(</span><span class="n">WIFI_STA</span><span class="p">);</span>
+  <span class="n">WiFi</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">ssid</span><span class="p">,</span> <span class="n">password</span><span class="p">);</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">WiFi</span><span class="p">.</span><span class="n">waitForConnectResult</span><span class="p">()</span> <span class="o">!=</span> <span class="n">WL_CONNECTED</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Connection Failed! Rebooting..."</span><span class="p">);</span>
+    <span class="n">delay</span><span class="p">(</span><span class="mi">5000</span><span class="p">);</span>
+    <span class="n">ESP</span><span class="p">.</span><span class="n">restart</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Port defaults to 8266</span>
+  <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">setPort</span><span class="p">(</span><span class="mi">8277</span><span class="p">);</span>
+
+  <span class="c1">// No authentication by default</span>
+  <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">setPassword</span><span class="p">(</span><span class="s">"My Password to Upload Code"</span><span class="p">);</span>
+
+  <span class="c1">// Password can be set with it's md5 value as well</span>
+  <span class="c1">// MD5(admin) = 21232f297a57a5a743894a0e4a801fc3</span>
+  <span class="c1">// ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");</span>
+
+  <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">setHostname</span><span class="p">(</span><span class="s">"Doorbell Switch"</span><span class="p">);</span>
+
+  <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">onStart</span><span class="p">([]()</span> <span class="p">{</span>
+    <span class="n">String</span> <span class="n">type</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">getCommand</span><span class="p">()</span> <span class="o">==</span> <span class="n">U_FLASH</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">type</span> <span class="o">=</span> <span class="s">"sketch"</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span> <span class="c1">// U_FS</span>
+      <span class="n">type</span> <span class="o">=</span> <span class="s">"filesystem"</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// NOTE: if updating FS this would be the place to unmount FS using FS.end()</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Start updating "</span> <span class="o">+</span> <span class="n">type</span><span class="p">);</span>
+  <span class="p">});</span>
+  <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">onEnd</span><span class="p">([]()</span> <span class="p">{</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">End"</span><span class="p">);</span>
+  <span class="p">});</span>
+  <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">onProgress</span><span class="p">([](</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">progress</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">total</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">printf</span><span class="p">(</span><span class="s">"Progress: %u%%</span><span class="se">\r</span><span class="s">"</span><span class="p">,</span> <span class="p">(</span><span class="n">progress</span> <span class="o">/</span> <span class="p">(</span><span class="n">total</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)));</span>
+  <span class="p">});</span>
+  <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">onError</span><span class="p">([](</span><span class="n">ota_error_t</span> <span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">printf</span><span class="p">(</span><span class="s">"Error[%u]: "</span><span class="p">,</span> <span class="n">error</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">error</span> <span class="o">==</span> <span class="n">OTA_AUTH_ERROR</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Auth Failed"</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">error</span> <span class="o">==</span> <span class="n">OTA_BEGIN_ERROR</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Begin Failed"</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">error</span> <span class="o">==</span> <span class="n">OTA_CONNECT_ERROR</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Connect Failed"</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">error</span> <span class="o">==</span> <span class="n">OTA_RECEIVE_ERROR</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Receive Failed"</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">error</span> <span class="o">==</span> <span class="n">OTA_END_ERROR</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"End Failed"</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+  <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Ready"</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">"IP address: "</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">WiFi</span><span class="p">.</span><span class="n">localIP</span><span class="p">());</span>
+
+  <span class="n">server</span><span class="p">.</span><span class="n">on</span><span class="p">(</span><span class="s">"/restart"</span><span class="p">,[](){</span>
+    <span class="n">server</span><span class="p">.</span><span class="n">send</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">"text/plain"</span><span class="p">,</span> <span class="s">"Restarting..."</span><span class="p">);</span>
+    <span class="n">delay</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+    <span class="n">ESP</span><span class="p">.</span><span class="n">restart</span><span class="p">();</span>
+  <span class="p">});</span>
+
+  <span class="n">server</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">yourSetup</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">ota_flag</span><span class="p">){</span>
+    <span class="n">digitalWrite</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>
+    <span class="k">while</span><span class="p">(</span><span class="n">time_elapsed</span> <span class="o">&lt;</span> <span class="mi">30000</span><span class="p">){</span>
+      <span class="n">ArduinoOTA</span><span class="p">.</span><span class="n">handle</span><span class="p">();</span>
+      <span class="n">time_elapsed</span> <span class="o">=</span> <span class="n">millis</span><span class="p">();</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">ota_flag</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="n">digitalWrite</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">LOW</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="n">server</span><span class="p">.</span><span class="n">handleClient</span><span class="p">();</span>
+  <span class="n">yourLoop</span><span class="p">();</span>
+  <span class="n">delay</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">yourLoop</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">Blynk</span><span class="p">.</span><span class="n">run</span><span class="p">();</span>
+  <span class="n">timer</span><span class="p">.</span><span class="n">run</span><span class="p">();</span>
+  <span class="n">debounce</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="kt">void</span> <span class="nf">printStatus</span><span class="p">(){</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">virtualState</span> <span class="o">!=</span> <span class="n">virtualLastState</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">mute</span><span class="p">){</span>
+  <span class="n">bridge1</span><span class="p">.</span><span class="n">virtualWrite</span><span class="p">(</span><span class="n">V1</span><span class="p">,</span> <span class="n">virtualState</span><span class="p">);</span>
+  <span class="n">virtualLastState</span> <span class="o">=</span> <span class="n">virtualState</span><span class="p">;</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">"Mute Status: "</span><span class="p">);</span> <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">mute</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">"virtual State: "</span><span class="p">);</span> <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">virtualState</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="kt">void</span> <span class="nf">debounce</span><span class="p">(){</span>
+  <span class="n">initialState</span> <span class="o">=</span> <span class="o">!</span><span class="n">digitalRead</span><span class="p">(</span><span class="n">buttonPin</span><span class="p">);</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">initialState</span> <span class="o">!=</span> <span class="n">finalState</span><span class="p">)</span> <span class="n">debounceTimer</span> <span class="o">=</span> <span class="n">millis</span><span class="p">();</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">millis</span><span class="p">()</span> <span class="o">-</span> <span class="n">debounceTimer</span>  <span class="o">&gt;</span> <span class="n">debounceDelay</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">initialState</span> <span class="o">!=</span> <span class="n">buttonState</span><span class="p">){</span>
+      <span class="n">buttonState</span> <span class="o">=</span> <span class="n">initialState</span><span class="p">;</span>
+      <span class="n">bridge1</span><span class="p">.</span><span class="n">virtualWrite</span><span class="p">(</span><span class="n">V1</span><span class="p">,</span> <span class="n">buttonState</span><span class="p">);</span>
+      <span class="n">Serial</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">"Button Status: "</span><span class="p">);</span> <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">buttonState</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="n">finalState</span> <span class="o">=</span> <span class="o">!</span><span class="n">digitalRead</span><span class="p">(</span><span class="n">buttonPin</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="n">BLYNK_WRITE</span><span class="p">(</span><span class="n">V0</span><span class="p">){</span>
+  <span class="kt">int</span> <span class="n">pindata</span> <span class="o">=</span> <span class="n">param</span><span class="p">.</span><span class="n">asInt</span><span class="p">();</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">pindata</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="n">virtualState</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="k">else</span> <span class="n">virtualState</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">BLYNK_WRITE</span><span class="p">(</span><span class="n">V2</span><span class="p">){</span>
+  <span class="n">mute</span> <span class="o">=</span> <span class="n">param</span><span class="p">.</span><span class="n">asInt</span><span class="p">();</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The sketch for the switch (transmitter) is more complex. This is because I chose to have the doorbell be activated by both physical input (input from the button) as well as digital input (input from software). On hindsight I should have directed the digital input directly to the actuator (since both components are online anyways). This would have reduced the total number of queries made to the boards.</p>
+
+<p>The current flow for the switch looks like this:</p>
+<ol>
+  <li>Check the physical state of the switch using a debounce() loop (to reduce interference from jitter)</li>
+  <li><strong>If</strong> the debounce() loop returns a positive outcome (ie the switch has been triggered), set the physical state to HIGH, else set it to LOW.</li>
+  <li>Check the digital state of the virtual button (via software).</li>
+  <li>
+    <p><strong>If</strong> this is true (the button has been pressed), set the software state to HIGH, else set it to LOW.</p>
+  </li>
+  <li>Check if the software state differs from the current Actuator State of the doorbell. If so, toggle the doorbell state (or let the doorbell state = software state).</li>
+  <li>If the condition in 5 is met, set the actuator pin to the Actuator State.</li>
+  <li>Repeat <strong>Step 5 to 6</strong> on the physical state.</li>
+</ol>
+
+<p>The use of intermediary <em>software</em> and <em>hardware</em> state boolean variables allows us to only set the Actuator State (perform an assignment of Actuator State = Software / Hardware State) <strong>only</strong> when the software / hardware state is different than the current actuator state. 
+A similar approach would be to set a “Last State” for the Actuator and only write the Actuator pin to the state of the software / hardware state <strong>when</strong> the Actuator State is different from the Last Actuator State.</p>
+
+:ET
