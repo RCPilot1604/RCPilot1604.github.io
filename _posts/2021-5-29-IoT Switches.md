@@ -48,7 +48,18 @@ The entire setup is installed in the socket box as shown:
 ![Circuit Board Installed in Socket Box]({{site.baseurl}}/images/Smart Home Switches/Box.jpg)
 {: refdef}
 
-**Initial trails and troubleshooting**
+**Pre-trials**
+In order to test the working functionality of the relays before I added it into the switchboxes (to save me some time), I tested each switch individually with an old toilet light fixture that had 2 Phillips PL-C 2-pin fluorescent light bulbs. 
+
+I tried cycling through each relay individually many times and often very quickly to sniff out any problems that would should have manifested itself with **individual relays**. I didn't try all the relays at the same time as I did not have enough devices to connect to all 4 relays of the board. 
+
+{:refdef: style="text-align: center;"}
+{% include youtube_embed.html id="1549-HMNis0" %}  
+{: refdef}
+
+The pre-tests showed that everything was working fine and the individual relays were able to sequentially turn this load on and off. What was also interesting here (commenting with retrospect) was that the bulbs in this setup were almost identiical to the light fixture that produced problems later on... making this extremely perplexing. 
+
+**Initial field trials and troubleshooting**
 On first trial without any load, both the buttons and the relays were operating normally. However, problems arose when the load was connected: 
 
 {:refdef: style="text-align: center;"}
