@@ -43,6 +43,10 @@ I used a simple transistor setup without an optocoupler as there was limited spa
 
 As for the physical buttons that would control the switches from the hardware itself, I ordered small [16mm buttons](https://www.aliexpress.com/item/32896357009.html?spm=a2g0s.9042311.0.0.27424c4dng17cv) that would sit in a 3d printed case to be mounted in place of the existing switch panels of the UK switch socket box. Files to the entire project will be available soon! 
 
+The relays I used were [SRD-05VDC-SL-C](https://www.aliexpress.com/item/4000917645316.html?spm=a2g0s.9042311.0.0.27424c4dMXmNxu) purchased of AliExpress with a voltage and current rating of 10A @250 VAC. 
+
+To power this entire setup, I used an inexpensive transformer unit [AC-DC 5V 700mA Transformer Power Supply Unit](https://www.aliexpress.com/item/33012749903.html?spm=a2g0s.9042311.0.0.27424c4d3PbPY4). I have used this transformer unit to power other projects before and they have worked well with no noise on the output leading to unexpected results on ESP8266s. The mains source for these power supplies was routed in from another nearby power source so that I could turn off the entire setup without having to turn off the entire lighting circuit of that room. 
+
 The entire setup is installed in the socket box as shown: 
 {:refdef: style="text-align: center;"}
 ![Circuit Board Installed in Socket Box]({{site.baseurl}}/images/Smart Home Switches/Box.jpg)
